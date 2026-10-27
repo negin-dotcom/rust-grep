@@ -1,0 +1,4 @@
+Rust is fast.
+Python is easy to learn.
+I am learning rUst.
+C++ is powerful.
