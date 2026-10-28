@@ -3,30 +3,43 @@ use std::{env, fs};
 fn main()
 {
     let args: Vec<String> = env::args().collect();
+    let mut remaining_args: Vec<&String> = Vec::new();
 
-    let mut i = 1;
+    let mut invert_match = false;
+
     let mut show_line_numbers = false;
     let mut ignore_case = false; 
 
-    while let Some(arg) = args.get(i) {
-        match arg.as_str() {
+    for arg in args.iter().skip(1)
+    {
+        match arg.as_str()
+        {
             "-n" => show_line_numbers = true,
             "-i" => ignore_case = true,
-            _ => break,
+            "-v" => invert_match = true,
+            _ => {
+                if arg.starts_with('-') 
+                {
+                    eprintln!("Unknown flag: {}", arg);
+                    return; 
+
+                } else {
+                    remaining_args.push(arg);
+                }
+            }
         }
-        i += 1;
     }
 
-    let pattern = match args.get(i) {
-        Some(value) => value,
+    let pattern = match remaining_args.get(0) {
+        Some(value) => value.as_str(),
         None => {
             eprintln!("Missing search pattern");
             return;
         }
     };
 
-    let filename = match args.get(i + 1) {
-        Some(value) => value, 
+    let filename = match remaining_args.get(1) {
+        Some(value) => value.as_str(), 
         None => {
             eprintln!("Missing search filename");
             return;
@@ -41,7 +54,8 @@ fn main()
         }
     };
 
-    let result = find_pattern(pattern, &contents, ignore_case);
+    let result = find_pattern(pattern, &contents, ignore_case,
+                                                  invert_match);
     for (idx, line) in result.iter()
     {
         if !show_line_numbers {
@@ -55,7 +69,8 @@ fn main()
 }
 
 
-fn find_pattern<'a>(pattern: &str, contents: &'a str, ignore_case: bool) -> Vec<(usize, &'a str)> 
+fn find_pattern<'a>(pattern: &str, contents: &'a str, ignore_case: bool,
+                    invert_match: bool) -> Vec<(usize, &'a str)> 
 {
     let pattern_lower = pattern.to_lowercase();
 
@@ -63,12 +78,35 @@ fn find_pattern<'a>(pattern: &str, contents: &'a str, ignore_case: bool) -> Vec<
         .lines()
         .enumerate()
         .filter(|(_, line)| {
-            if ignore_case {
+            let matches = if ignore_case {
                 line.to_lowercase().contains(&pattern_lower)
             } else {
                 line.contains(pattern)
-            }
+            };
+
+            matches != invert_match
         })
         .map(|(idx, line)| (idx + 1, line))
         .collect()
+}
+
+
+
+#[cfg(test)]
+mod tests 
+{
+    use super::*;
+
+    #[test]
+    fn basic_search()
+    {
+        let contents = "hello rust\nhello python\nhello rust again";
+
+        let result = find_pattern("rust", contents, false);
+
+        assert_eq!(
+            result,
+            vec![(1, "hello rust"), (3, "hello rust again")]
+        );
+    }
 }
