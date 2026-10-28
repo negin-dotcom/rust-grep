@@ -113,11 +113,115 @@ mod tests
     {
         let contents = "hello rust\nhello python\nhello rust again";
 
-        let result = find_pattern("rust", contents, false);
+        let result = find_pattern("rust", contents, false,
+                                        false);
 
         assert_eq!(
             result,
             vec![(1, "hello rust"), (3, "hello rust again")]
         );
+    }
+
+    #[test]
+    fn case_insensitive_search()
+    {
+        let contents = "hello rust\nhello python\nhello RUST again";
+        let result = find_pattern("rust", contents, true, 
+                                        false);
+
+        assert_eq!(
+            result,
+            vec![(1, "hello rust"), (3, "hello RUST again")]
+        );                       
+    }
+
+    #[test]
+    fn case_insensitive_inverted_search()
+    {
+        let contents = "hello rust\nhello python\nhello RUST again";
+        let result = find_pattern("rust", contents, true, 
+                                        true);
+
+        assert_eq!(
+            result,
+            vec![(2, "hello python")]
+        );
+    }
+
+    #[test]
+    fn case_sensitive_inverted_search()
+    {
+        let contents = "hello rust\nhello python\nhello RUST again";
+        let result = find_pattern("rust", contents, false, 
+                                        true);
+
+        assert_eq!(
+            result,
+            vec![(2, "hello python"), (3, "hello RUST again")]
+        );
+    }
+
+    #[test]
+    fn empty_pattern_without_invert_match()
+    {
+        let contents = "hello\nworld";
+        let result = find_pattern("", contents, false,
+                                        false);
+        
+        assert_eq!(
+            result,
+            vec![(1, "hello"), (2, "world")]
+        );
+    }
+
+    #[test]
+    fn empty_pattern_with_invert_match()
+    {
+        let contents = "hello\nworld";
+        let result = find_pattern("", contents, false,
+                                        true);
+        
+        assert_eq!(
+            result,
+            vec![]
+        );
+    }
+
+    #[test]
+    fn empty_filename()
+    {
+        let result = find_pattern("rust", "", false,
+                                        false);
+
+        assert_eq!(
+            result,
+            vec![]
+        )
+    }
+
+    #[test]
+    fn non_existing_pattern_without_invert_match()
+    {
+        let contents = "hello\nworld";
+        let result = find_pattern("rust", contents, false,
+                                        false);
+
+        assert_eq!(
+            result,
+            vec![]
+        )
+    }
+
+    #[test]
+    fn non_existing_pattern_with_invert_match()
+    {
+        let contents = "hello\nworld";
+        let result = find_pattern("rust", contents, false,
+                                        true);
+
+        assert_eq!(
+            result,
+            vec![(1, "hello"), (2, "world")]
+        )
     }
 }
