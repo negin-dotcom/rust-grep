@@ -9,6 +9,8 @@ fn main()
 
     let mut show_line_numbers = false;
     let mut ignore_case = false; 
+    let mut count_matching_lines = false;
+
 
     for arg in args.iter().skip(1)
     {
@@ -17,6 +19,7 @@ fn main()
             "-n" => show_line_numbers = true,
             "-i" => ignore_case = true,
             "-v" => invert_match = true,
+            "-c" => count_matching_lines = true,
             _ => {
                 if arg.starts_with('-') 
                 {
@@ -56,15 +59,23 @@ fn main()
 
     let result = find_pattern(pattern, &contents, ignore_case,
                                                   invert_match);
-    for (idx, line) in result.iter()
-    {
-        if !show_line_numbers {
-            println!("{}", line);
+    if count_matching_lines {
+            println!("{}", result.len());
 
-        } else {
-            println!("{}: {}", idx, line);
+    } else {
+        for (idx, line) in result.iter()
+            {
+            
+            if !show_line_numbers {
+                println!("{}", line);
+
+            } else {
+                println!("{}: {}", idx, line);
+            }
         }
     }
+
+    
 
 }
 
