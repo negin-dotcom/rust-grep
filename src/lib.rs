@@ -1,0 +1,94 @@
+pub struct Config
+{
+    pub pattern: String,
+    pub filename: String,
+    pub ignore_case: bool, 
+    pub invert_match: bool,
+    pub whole_word: bool,
+    pub show_line_numbers: bool,
+    pub count_matching_lines: bool,
+}
+
+impl Config 
+{
+    pub fn create_default_config() -> Config
+    {
+        Config {
+            pattern: String::new(),
+            filename: String::new(),
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+            show_line_numbers: false,
+            count_matching_lines: false,
+        }
+    }
+}
+
+pub fn is_word_char(c: char) -> bool 
+{
+    c.is_alphanumeric() || c == '_'
+}
+
+pub fn contains_whole_word(line: &str, pattern: &str) -> bool 
+{
+    if pattern.is_empty()
+    {
+        return true;
+    }
+     
+    for (start, _) in line.match_indices(pattern) 
+    {
+        let end = start + pattern.len();
+
+        let before_ok = line[..start]
+                            .chars()
+                            .next_back()
+                            .map_or(true, |c| !is_word_char(c));
+        
+        let after_ok = line[end..]
+                            .chars()
+                            .next()
+                            .map_or(true, |c| !is_word_char(c));
+        
+        if before_ok && after_ok 
+        {
+            return true;
+        }
+    }    
+    false       
+}
+
+
+pub fn find_pattern<'a>(contents: &'a str, config: &Config) -> Vec<(usize, &'a str)> 
+{
+    let pattern_lower = if config.ignore_case { 
+        config.pattern.to_lowercase() 
+
+    } else {
+         String::new() 
+    }; 
+
+    contents
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| {
+            let matches = match (config.ignore_case, config.whole_word)
+            {
+                (true, true) => {
+                    let line_lower = line.to_lowercase();
+                    contains_whole_word(&line_lower, &pattern_lower)
+                },
+                (true, false) => {
+                    let line_lower = line.to_lowercase();
+                    line_lower.contains(&pattern_lower)
+                },
+                (false, true) => contains_whole_word(line, &config.pattern),
+                (false, false) => line.contains(&config.pattern),
+            };
+
+            matches != config.invert_match
+        })
+        .map(|(idx, line)| (idx + 1, line))
+        .collect()
+}
