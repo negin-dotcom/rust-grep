@@ -163,21 +163,23 @@ fn find_pattern<'a>(contents: &'a str, config: &Config) -> Vec<(usize, &'a str)>
 }
 
 
-// A helper method for tests.
-fn config_builder(pattern: &str) -> Config<'_>
-{
-    Config {
-        pattern, 
-        ignore_case: false,
-        invert_match: false,
-        whole_word: false,
-    }
-}
+
 
 #[cfg(test)]
 mod tests 
 {
     use super::*;
+
+    // A helper method for tests.
+    fn config_builder(pattern: &str) -> Config<'_>
+    {
+        Config {
+            pattern, 
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+        }
+    }
 
     #[test]
     fn basic_search()
