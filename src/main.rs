@@ -1,5 +1,14 @@
 use std::{env, fs};
 
+
+struct Config<'a>
+{
+    pattern: &'a str,
+    ignore_case: bool, 
+    invert_match: bool,
+    whole_word: bool,
+}
+
 fn main()
 {
     let args: Vec<String> = env::args().collect();
@@ -58,8 +67,15 @@ fn main()
         }
     };
 
-    let result = find_pattern(pattern, &contents, ignore_case,
-                                                  invert_match, whole_word);
+    let config = Config 
+    {
+        pattern,
+        ignore_case,
+        invert_match,
+        whole_word,
+    };
+
+    let result = find_pattern(&contents, &config);
     if count_matching_lines {
             println!("{}", result.len());
 
@@ -112,15 +128,20 @@ fn contains_whole_word(line: &str, pattern: &str) -> bool
 }
 
 
-fn find_pattern<'a>(pattern: &str, contents: &'a str, ignore_case: bool,
-                    invert_match: bool, whole_word: bool) -> Vec<(usize, &'a str)> 
+fn find_pattern<'a>(contents: &'a str, config: &Config) -> Vec<(usize, &'a str)> 
 {
-    let pattern_lower = if ignore_case { pattern.to_lowercase() } else { String::new() }; 
+    let pattern_lower = if config.ignore_case { 
+        config.pattern.to_lowercase() 
+
+    } else {
+         String::new() 
+    }; 
+
     contents
         .lines()
         .enumerate()
         .filter(|(_, line)| {
-            let matches = match (ignore_case, whole_word)
+            let matches = match (config.ignore_case, config.whole_word)
             {
                 (true, true) => {
                     let line_lower = line.to_lowercase();
@@ -130,11 +151,11 @@ fn find_pattern<'a>(pattern: &str, contents: &'a str, ignore_case: bool,
                     let line_lower = line.to_lowercase();
                     line_lower.contains(&pattern_lower)
                 },
-                (false, true) => contains_whole_word(line, pattern),
-                (false, false) => line.contains(pattern),
+                (false, true) => contains_whole_word(line, config.pattern),
+                (false, false) => line.contains(config.pattern),
             };
 
-            matches != invert_match
+            matches != config.invert_match
         })
         .map(|(idx, line)| (idx + 1, line))
         .collect()
@@ -151,9 +172,14 @@ mod tests
     fn basic_search()
     {
         let contents = "hello rust\nhello python\nhello rust again";
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+        };
 
-        let result = find_pattern("rust", contents, false,
-                                        false, false);
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -165,8 +191,14 @@ mod tests
     fn case_insensitive_search()
     {
         let contents = "hello rust\nhello python\nhello RUST again";
-        let result = find_pattern("rust", contents, true, 
-                                        false, false);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: true,
+            invert_match: false,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -178,8 +210,14 @@ mod tests
     fn case_insensitive_inverted_search()
     {
         let contents = "hello rust\nhello python\nhello RUST again";
-        let result = find_pattern("rust", contents, true, 
-                                        true, false);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: true,
+            invert_match: true,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -191,8 +229,14 @@ mod tests
     fn case_sensitive_inverted_search()
     {
         let contents = "hello rust\nhello python\nhello RUST again";
-        let result = find_pattern("rust", contents, false, 
-                                        true, false);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: true,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -204,8 +248,14 @@ mod tests
     fn empty_pattern_without_invert_match()
     {
         let contents = "hello\nworld";
-        let result = find_pattern("", contents, false,
-                                        false, false);
+        let config = Config {
+            pattern: "",
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
         
         assert_eq!(
             result,
@@ -217,8 +267,14 @@ mod tests
     fn empty_pattern_with_invert_match()
     {
         let contents = "hello\nworld";
-        let result = find_pattern("", contents, false,
-                                        true, false);
+        let config = Config {
+            pattern: "",
+            ignore_case: false,
+            invert_match: true,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
         
         assert_eq!(
             result,
@@ -229,8 +285,15 @@ mod tests
     #[test]
     fn empty_filename()
     {
-        let result = find_pattern("rust", "", false,
-                                        false, false);
+        let contents = "";
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -242,8 +305,14 @@ mod tests
     fn non_existing_pattern_without_invert_match()
     {
         let contents = "hello\nworld";
-        let result = find_pattern("rust", contents, false,
-                                        false, false);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: false,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -255,8 +324,14 @@ mod tests
     fn non_existing_pattern_with_invert_match()
     {
         let contents = "hello\nworld";
-        let result = find_pattern("rust", contents, false,
-                                        true, false);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: true,
+            whole_word: false,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
@@ -268,8 +343,14 @@ mod tests
     fn whole_word_search()
     {
         let contents = "rust\ntrust\nrusty\nI like rust.\ntrust rust";
-        let result = find_pattern("rust", contents, false,
-                                        false, true);
+        let config = Config {
+            pattern: "rust",
+            ignore_case: false,
+            invert_match: false,
+            whole_word: true,
+        };
+
+        let result = find_pattern(contents, &config);
 
         assert_eq!(
             result,
