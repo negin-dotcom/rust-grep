@@ -319,4 +319,66 @@ mod tests
         );
     }
 
+    #[test]
+    fn whole_word_with_ignore_case()
+    {
+        let contents = "Rust\ntrust\nI love RUST.";
+        let config = Config { 
+            ignore_case: true,
+            whole_word: true,
+             ..config_builder("rust") };
+
+        let result = find_pattern(contents, &config);
+        
+        assert_eq!(
+            result,
+            vec![(1, "Rust"), (3, "I love RUST.")]
+        ); 
+    }
+
+    #[test]
+    fn whole_word_with_invert_match()
+    {
+        let contents = "rust\ntrust\nrusty";
+        let config = Config { 
+            invert_match: true,
+            whole_word: true,
+             ..config_builder("rust") };
+
+        let result = find_pattern(contents, &config);
+        
+        assert_eq!(
+            result,
+            vec![(2, "trust"), (3, "rusty")]
+        ); 
+    }
+
+    #[test]
+    fn whole_word_empty_pattern()
+    {
+        let contents = "hello\nworld";
+        let config = Config { whole_word: true, ..config_builder("") };
+
+        let result = find_pattern(contents, &config);
+
+        assert_eq!(
+            result,
+            vec![(1, "hello"), (2, "world")]
+        );
+    }
+
+    #[test]
+    fn whole_word_underscore_and_digits_are_word_chars()
+    {
+        let contents = "rust_lang\nrust2\nrust-lang";
+        let config = Config { whole_word: true, ..config_builder("rust") };
+
+        let result = find_pattern(contents, &config);
+
+        assert_eq!(
+            result,
+            vec![(3, "rust-lang")]
+        );
+    }
+
 }
