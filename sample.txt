@@ -1,4 +1,4 @@
 Rust is fast.
 Python is easy to learn.
-I am learning rUst.
+I am learning rUsti.
 C++ is powerful.
