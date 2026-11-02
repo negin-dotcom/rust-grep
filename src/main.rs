@@ -1,5 +1,5 @@
-use std::{env, fs};
-use rust_grep::{find_pattern, Config};
+use std::env;
+use rust_grep::{Config, search_one_file};
 
 
 fn main()
@@ -39,39 +39,24 @@ fn main()
         }
     };
 
-    let filename = match remaining_args.get(1) {
-        Some(value) => value.as_str(), 
-        None => {
-            eprintln!("Missing search filename");
-            return;
-        }
-    };
+    if remaining_args.len() < 2 {
+        eprintln!("Missing search filename");
+        return;
+    }
+
 
     config.pattern = pattern.to_string();
-    config.filename = filename.to_string();
+    config.filenames = remaining_args[1..]
+                        .iter()
+                        .map(|a| a.to_string())
+                        .collect();
 
+    let show_filename = config.filenames.len() > 1;
 
-    let contents = match fs::read_to_string(&config.filename) {
-        Ok(contents) => contents,
-        Err(error) => {
-            eprintln!("Could not read file: {}", error);
-            return;
-        }
-    };
-
-    let result = find_pattern(&contents, &config);
-    if config.count_matching_lines {
-            println!("{}", result.len());
-
-    } else {
-        for (idx, line) in result.iter()
-            {
-                if !config.show_line_numbers {
-                    println!("{}", line);
-
-                } else {
-                    println!("{}: {}", idx, line);
-                }
-            }
+    for filename in &config.filenames 
+    {
+        search_one_file(filename, &config, show_filename)
     }
 }
+
+

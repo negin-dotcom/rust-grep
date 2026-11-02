@@ -1,7 +1,9 @@
+use std::fs;
+
 pub struct Config
 {
     pub pattern: String,
-    pub filename: String,
+    pub filenames: Vec<String>,
     pub ignore_case: bool, 
     pub invert_match: bool,
     pub whole_word: bool,
@@ -15,7 +17,7 @@ impl Config
     {
         Config {
             pattern: String::new(),
-            filename: String::new(),
+            filenames: Vec::new(),
             ignore_case: false,
             invert_match: false,
             whole_word: false,
@@ -91,4 +93,65 @@ pub fn find_pattern<'a>(contents: &'a str, config: &Config) -> Vec<(usize, &'a s
         })
         .map(|(idx, line)| (idx + 1, line))
         .collect()
+}
+
+
+pub fn search_contents(
+    filename: &str, 
+    contents: &str,
+    config: &Config,
+    show_filename: bool
+) -> Vec<String> 
+{
+    let result = find_pattern(contents, config);
+
+    if config.count_matching_lines 
+    {
+        if show_filename 
+        {
+            return vec![format!("{}:{}", filename, result.len())];
+
+        } else {
+            return vec![result.len().to_string()];
+        }
+    }
+
+    let mut output = Vec::new();
+
+    for (idx, line) in result.iter() 
+    {
+        let mut prefix = String::new();
+
+        if show_filename 
+        {
+            prefix.push_str(filename);
+            prefix.push_str(" -> ");
+        } 
+
+        if config.show_line_numbers 
+        {
+            prefix.push_str(&format!("{}: ", idx));
+        }
+
+        output.push(format!("{}{}", prefix, line));
+    }
+
+    output
+}
+
+
+pub fn search_one_file(filename: &str, config: &Config, show_filename: bool) 
+{
+    let contents = match fs::read_to_string(filename) {
+        Ok(contents) => contents,
+        Err(error) => {
+            eprintln!("Could not read file {}: {}", filename, error);
+            return;
+        }
+    };
+
+    for line in search_contents(filename, &contents, config, show_filename)
+    {
+        println!("{}", line);
+    }
 }
