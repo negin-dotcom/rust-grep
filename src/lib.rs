@@ -48,12 +48,12 @@ pub fn contains_whole_word(line: &str, pattern: &str) -> bool
         let before_ok = line[..start]
                             .chars()
                             .next_back()
-                            .map_or(true, |c| !is_word_char(c));
+                            .is_none_or( |c| !is_word_char(c));
         
         let after_ok = line[end..]
                             .chars()
                             .next()
-                            .map_or(true, |c| !is_word_char(c));
+                            .is_none_or(|c| !is_word_char(c));
         
         if before_ok && after_ok 
         {

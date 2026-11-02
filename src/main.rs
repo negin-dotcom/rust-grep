@@ -31,7 +31,7 @@ fn main()
         }
     }
 
-    let pattern = match remaining_args.get(0) {
+    let pattern = match remaining_args.first() {
         Some(value) => value.as_str(),
         None => {
             eprintln!("Missing search pattern");
