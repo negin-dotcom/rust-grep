@@ -1,4 +1,4 @@
-use rust_grep::{find_pattern, Config};
+use rust_grep::{Config, find_pattern, search_contents, search_one_file};
 
 
 
@@ -219,6 +219,31 @@ fn whole_word_underscore_and_digits_are_word_chars()
     assert_eq!(
         result,
         vec![(3, "rust-lang")]
+    );
+}
+
+#[test]
+fn two_files_get_filename_prefix()
+{
+    let mut config = Config::create_default_config();
+    config.pattern = String::from("rust");
+
+    let contents_1 = "Rust is fun.\nLearning rust is good.";
+    let filename_1 = "a.txt";
+    let contents_2 = "Wow, you just learnt rust.";
+    let filename_2 = "b.txt";
+
+    let show_filename = true;
+
+    let mut all = search_contents(filename_1, contents_1,
+                                               &config, show_filename);
+    all.extend(search_contents(filename_2, contents_2, 
+                                    &config, show_filename));
+
+
+    assert_eq!(
+        all,
+        vec!["a.txt -> Learning rust is good.", "b.txt -> Wow, you just learnt rust."]
     );
 }
 

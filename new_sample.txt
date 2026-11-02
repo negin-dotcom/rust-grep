@@ -1,0 +1,3 @@
+My main interest is Python.
+Rust is also a good language.
+Learning rUsT helps me a lot.
