@@ -1,5 +1,7 @@
 use std::fs;
 
+const COLORS: [&str; 2] = ["\x1b[33m", "\x1b[36m"];
+
 pub struct Config
 {
     pub pattern: String,
@@ -109,7 +111,7 @@ pub fn search_contents(
     {
         if show_filename 
         {
-            return vec![format!("{}:{}", filename, result.len())];
+            return vec![format!("{}{}\x1b[0m:{}", color_for(filename), filename, result.len())];
 
         } else {
             return vec![result.len().to_string()];
@@ -124,7 +126,9 @@ pub fn search_contents(
 
         if show_filename 
         {
+            prefix.push_str(color_for(filename));
             prefix.push_str(filename);
+            prefix.push_str("\x1b[0m");
             prefix.push_str(" -> ");
         } 
 
@@ -150,8 +154,16 @@ pub fn search_one_file(filename: &str, config: &Config, show_filename: bool)
         }
     };
 
+    println!();
+
     for line in search_contents(filename, &contents, config, show_filename)
     {
         println!("{}", line);
     }
+}
+
+pub fn color_for(filename: &str) -> &'static str 
+{
+    let sum: usize = filename.bytes().map(|b| b as usize).sum();
+    COLORS[sum % COLORS.len()]
 }

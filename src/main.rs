@@ -53,6 +53,8 @@ fn main()
 
     let show_filename = config.filenames.len() > 1;
 
+    println!("\n{} RESULT {}", "=".repeat(12), "=".repeat(12));
+    
     for filename in &config.filenames 
     {
         search_one_file(filename, &config, show_filename)
