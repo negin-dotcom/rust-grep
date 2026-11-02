@@ -7,3 +7,4 @@
 - `-c`: used for counting the matches.
 - `-w`: used for finding the exact pattern match.
 - Handling unknown flags.
+- Handling two files.
