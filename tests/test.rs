@@ -243,7 +243,7 @@ fn two_files_get_filename_prefix()
 
     assert_eq!(
         all,
-        vec!["a.txt -> Learning rust is good.", "b.txt -> Wow, you just learnt rust."]
+        vec!["\x1b[36ma.txt\x1b[0m -> Learning rust is good.", "\x1b[33mb.txt\x1b[0m -> Wow, you just learnt rust."]
     );
 }
 
