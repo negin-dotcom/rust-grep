@@ -66,12 +66,9 @@ pub fn contains_whole_word(line: &str, pattern: &str) -> bool
 
 pub fn find_pattern<'a>(contents: &'a str, config: &Config) -> Vec<(usize, &'a str)> 
 {
-    let pattern_lower = if config.ignore_case { 
-        config.pattern.to_lowercase() 
-
-    } else {
-         String::new() 
-    }; 
+    let pattern_lower = config.ignore_case
+                                    .then(|| config.pattern.to_lowercase())
+                                    .unwrap_or_default();
 
     contents
         .lines()
@@ -107,15 +104,12 @@ pub fn search_contents(
 {
     let result = find_pattern(contents, config);
 
-    if config.count_matching_lines 
+    if config.count_matching_lines && show_filename 
     {
-        if show_filename 
-        {
-            return vec![format!("{}{}\x1b[0m:{}", color_for(filename), filename, result.len())];
+        return vec![format!("{}{}\x1b[0m:{}", color_for(filename), filename, result.len())];
 
-        } else {
-            return vec![result.len().to_string()];
-        }
+    } else if config.count_matching_lines && !show_filename {
+        return vec![result.len().to_string()];
     }
 
     let mut output = Vec::new();
@@ -156,10 +150,8 @@ pub fn search_one_file(filename: &str, config: &Config, show_filename: bool)
 
     println!();
 
-    for line in search_contents(filename, &contents, config, show_filename)
-    {
-        println!("{}", line);
-    }
+    search_contents(filename, &contents, config, show_filename).into_iter()
+                                                               .for_each(|line| println!("{}", line));
 }
 
 pub fn color_for(filename: &str) -> &'static str 
