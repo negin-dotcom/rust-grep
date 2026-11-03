@@ -1,6 +1,10 @@
 use std::fs;
 
-const COLORS: [&str; 2] = ["\x1b[33m", "\x1b[36m"];
+const COLORS: [&str; 2] = ["\x1b[33m", "\x1b[36m"];   // yellow, cyan
+
+const RED: &str = "\x1b[31m";
+const GREEN: &str = "\x1b[32m";
+const RESET: &str = "\x1b[0m";
 
 pub struct Config
 {
@@ -108,7 +112,7 @@ pub fn search_contents(
 
     if config.count_matching_lines && show_filename 
     {
-        return vec![format!("{}{}\x1b[0m:{}", color_for(filename), filename, result.len())];
+        return vec![format!("{}{}{}:{}", color_for(filename), filename, RESET, result.len())];
 
     } else if config.count_matching_lines && !show_filename {
         return vec![result.len().to_string()];
@@ -124,7 +128,7 @@ pub fn search_contents(
         {
             prefix.push_str(color_for(filename));
             prefix.push_str(filename);
-            prefix.push_str("\x1b[0m");
+            prefix.push_str(RESET);
             prefix.push_str(" -> ");
         } 
 
@@ -138,10 +142,20 @@ pub fn search_contents(
 
     if config.count_matches 
     {
-        output.push(format!("\x1b[32m{} matches found.\x1b[0m", total_occurrences(&result, config)));
+        output.push(count_matches_with_color(total_occurrences(&result, config)));
     }
 
     output
+}
+
+pub fn count_matches_with_color(count: usize) -> String
+{
+    if count == 0 {
+        format!("{}No matches found.{}", RED, RESET)
+    
+    } else {
+        format!("{}{} match(es) found.{}", GREEN, count, RESET)
+    }
 }
 
 
