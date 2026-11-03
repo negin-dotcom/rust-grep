@@ -1,4 +1,8 @@
-use rust_grep::{Config, find_pattern, search_contents};
+use rust_grep::{
+                Config, 
+                find_pattern,
+                search_contents, 
+                count_matches_with_color};
 
 
 #[cfg(test)]
@@ -251,4 +255,46 @@ mod tests
         );
     }
 
+    #[test]
+    fn count_matches_without_ignore_case()
+    {
+        let contents_1 = "Rust is fun, I love rust.\nLearning rust is good.";
+        let filename_1 = "a.txt";
+        let mut config = Config::create_default_config();
+        config.pattern = String::from("rust");
+        config.ignore_case = false;
+        config.count_matches = true;
+        let show_filename = false;
+
+        let result = search_contents(filename_1, contents_1,
+                                                 &config, show_filename);
+        assert_eq!(
+            result,
+            vec!["Rust is fun, I love rust.",
+                 "Learning rust is good.", 
+                 &count_matches_with_color(2)]
+        );
+    }
+
+    #[test]
+    fn count_matches_with_ignore_case()
+    {
+        let contents_1 = "Rust is fun.\nLearning rust is good, I love rust.";
+        let filename_1 = "a.txt";
+        let mut config = Config::create_default_config();
+        config.pattern = String::from("rust");
+        config.ignore_case = true;
+        config.count_matches = true;
+        let show_filename = false;
+
+        let result = search_contents(filename_1, contents_1,
+                                                 &config, show_filename);
+                    
+        assert_eq!(
+            result,
+            vec!["Rust is fun.", 
+                 "Learning rust is good, I love rust.",
+                 &count_matches_with_color(3)]
+        );
+    }
 }
