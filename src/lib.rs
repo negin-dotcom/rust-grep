@@ -11,6 +11,7 @@ pub struct Config
     pub whole_word: bool,
     pub show_line_numbers: bool,
     pub count_matching_lines: bool,
+    pub count_matches: bool,
 }
 
 impl Config 
@@ -25,6 +26,7 @@ impl Config
             whole_word: false,
             show_line_numbers: false,
             count_matching_lines: false,
+            count_matches: false,
         }
     }
 }
@@ -134,6 +136,11 @@ pub fn search_contents(
         output.push(format!("{}{}", prefix, line));
     }
 
+    if config.count_matches 
+    {
+        output.push(format!("\x1b[32m{} matches found.\x1b[0m", total_occurrences(&result, config)));
+    }
+
     output
 }
 
@@ -158,4 +165,48 @@ pub fn color_for(filename: &str) -> &'static str
 {
     let sum: usize = filename.bytes().map(|b| b as usize).sum();
     COLORS[sum % COLORS.len()]
+}
+
+pub fn count_in_line(line: &str, pattern: &str, whole_word: bool) -> usize 
+{
+    if pattern.is_empty()
+    {
+        return 0;
+    }
+
+    line.match_indices(pattern)
+        .filter(|(start, _)| {
+            if !whole_word 
+            {
+                return true;
+            }
+            let end = start + pattern.len();
+            let before_ok = line[..*start].chars().next_back().is_none_or(|c| !is_word_char(c));
+            let after_ok = line[end..].chars().next().is_none_or(|c| !is_word_char(c));
+            before_ok && after_ok
+        })
+        .count()
+}
+
+
+pub fn total_occurrences(result: &[(usize, &str)], config: &Config) -> usize 
+{
+    let pattern = if config.ignore_case {
+        config.pattern.to_lowercase()
+
+    } else {
+        config.pattern.clone()
+    };
+
+    result.iter()
+          .map(|(_, line)| {
+                if config.ignore_case 
+                {
+                    count_in_line(&line.to_lowercase(), &pattern, config.whole_word)
+                
+                } else {
+                    count_in_line(line, &pattern, config.whole_word)
+                }
+          })
+          .sum()
 }
