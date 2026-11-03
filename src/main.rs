@@ -18,6 +18,7 @@ fn main()
             "-v" => config.invert_match = true,
             "-c" => config.count_matching_lines = true,
             "-w" => config.whole_word = true,
+            "-t" => config.count_matches = true,
             _ => {
                 if arg.starts_with('-') 
                 {

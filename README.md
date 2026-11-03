@@ -7,6 +7,7 @@
 - `-v`: used for inverting the search.
 - `-c`: used for counting the matching lines.
 - `-w`: used for finding the exact pattern match.
+- `-t`: used for counting the matches.
 - Handling unknown flags.
 - Handling multiple files.
 - Colorizing the output.
